@@ -65,52 +65,52 @@ A straight is valid only if:
 
 ---
 
-## Architettura dell IA
-L agente utilizza una Dueling Double Deep Q-Network (D3QN) con un architettura neurale custom progettata per estrarre feature spaziali e combinatorie dalla griglia.
+## AI Architecture
+The agent utilizes a Dueling Double Deep Q-Network (D3QN) with a custom neural architecture designed to extract spatial and combinatorial features from the grid.
 
 ### 1. State Representation (Input)
-L agente riceve una rappresentazione tensoriale avanzata dello stato di gioco:
-* Grid State: Un tensore 3D di forma (13, 5, 5) dove ogni canale rappresenta un valore del dado (One-Hot encoding spaziale).
-* Current Roll: Un vettore One-Hot di dimensione 13 che indica il valore del dado da piazzare nel turno corrente.
+The agent receives an advanced tensorial representation of the game state:
+* Grid State: A 3D tensor of shape (13, 5, 5) where each channel represents a dice value (spatial One-Hot encoding).
+* Current Roll: A One-Hot vector of size 13 indicating the dice value to be placed in the current turn.
 
 ### 2. Neural Network Design
-La rete KnisterQNet implementa diversi rami specializzati:
-* Asymmetric Convolutions: Filtri (1, 5) e (5, 1) per analizzare specificamente l integrita di righe e colonne.
-* Diagonal Branch: Un ramo dedicato all estrazione e analisi delle diagonali, data la loro importanza strategica.
-* Dueling Head: Separazione della stima del valore dello stato (V) dal vantaggio di ogni singola azione (A) per migliorare la stabilita.
-* Normalization: Uso di LayerNorm per stabilizzare l apprendimento contro le ampie variazioni di reward.
+The KnisterQNet network implements several specialized branches:
+* Asymmetric Convolutions: (1, 5) and (5, 1) filters to specifically analyze the integrity of rows and columns.
+* Diagonal Branch: A dedicated branch for extracting and analyzing diagonals, given their strategic importance.
+* Dueling Head: Separation of the state value estimation (V) from the advantage of each single action (A) to improve stability.
+* Normalization: Use of LayerNorm to stabilize learning against wide variations in rewards.
 
 ### 3. Advanced Learning Techniques
-Per ottimizzare le prestazioni e puntare a punteggi elevati, sono state implementate tecniche avanzate:
-* Double DQN: Per ridurre la sovrastima sistematica dei valori Q.
-* Self-Imitation Learning (SIL): Un Elite Buffer memorizza le migliori partite di sempre per permettere all agente di ripassare le strategie vincenti.
-* Advanced Reward Shaping: La funzione di reward e stata modellata per fornire feedback densi:
-    * Delta Score: Incremento immediato di punteggio.
-    * Potential Gain: Premia le mosse che preparano combinazioni future (es. tris o poker).
-    * Flexibility: Incentiva il mantenimento di opzioni aperte in linee promettenti.
-    * Dead Cells: Penalizza il posizionamento di numeri che rendono impossibili le scale.
+To optimize performance and target high scores, advanced techniques have been implemented:
+* Double DQN: To reduce systematic overestimation of Q-values.
+* Self-Imitation Learning (SIL): An Elite Buffer stores the best games ever played to allow the agent to revisit winning strategies.
+* Advanced Reward Shaping: The reward function has been modeled to provide dense feedback:
+    * Delta Score: Immediate score increase.
+    * Potential Gain: Rewards moves that prepare future combinations such as three-of-a-kind or four-of-a-kind.
+    * Flexibility: Encourages maintaining open options in promising lines.
+    * Dead Cells: Penalizes the placement of numbers that make straights impossible.
 
-## Struttura del Repository
-* api.py: Logica core del gioco, gestione del posizionamento e calcolo dei punteggi.
-* knister_ai.py: Implementazione della D3QN, della rete neurale e del loop di addestramento.
-* play.py: Script CLI per testare manualmente il gioco e verificare le regole.
-* README.md: Documentazione del progetto.
+## Repository Structure
+* api.py: Core game logic, placement management, and score calculation.
+* knister_ai.py: Implementation of the D3QN, neural network, and training loop.
+* play.py: CLI script to manually test the game and verify rules.
+* README.md: Project documentation.
 
-## Utilizzo
+## Usage
 
-### Requisiti
+### Requirements
 * Python 3.10+
 * PyTorch
 * NumPy
 
-### Addestramento
-Per avviare l addestramento dell agente:
+### Training
+To start training the agent:
 ```bash
 python knister_ai.py
 ```
 
 ### Test
-Per testare il checkpoint generato avviare:
+To test the agent saved in 'checkpoint_knister.pth':
 ```bash
 python test_ai.py
 ```
