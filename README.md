@@ -65,94 +65,52 @@ A straight is valid only if:
 
 ---
 
-## API Overview
+## Architettura dell IA
+L agente utilizza una Dueling Double Deep Q-Network (D3QN) con un architettura neurale custom progettata per estrarre feature spaziali e combinatorie dalla griglia.
 
-The main entry point is the `KnisterGame` class.
+### 1. State Representation (Input)
+L agente riceve una rappresentazione tensoriale avanzata dello stato di gioco:
+* Grid State: Un tensore 3D di forma (13, 5, 5) dove ogni canale rappresenta un valore del dado (One-Hot encoding spaziale).
+* Current Roll: Un vettore One-Hot di dimensione 13 che indica il valore del dado da piazzare nel turno corrente.
 
-### Core responsibilities
+### 2. Neural Network Design
+La rete KnisterQNet implementa diversi rami specializzati:
+* Asymmetric Convolutions: Filtri (1, 5) e (5, 1) per analizzare specificamente l integrita di righe e colonne.
+* Diagonal Branch: Un ramo dedicato all estrazione e analisi delle diagonali, data la loro importanza strategica.
+* Dueling Head: Separazione della stima del valore dello stato (V) dal vantaggio di ogni singola azione (A) per migliorare la stabilita.
+* Normalization: Uso di LayerNorm per stabilizzare l apprendimento contro le ampie variazioni di reward.
 
-The class:
-- stores the game grid and available actions
-- handles dice rolls or externally provided roll values
-- applies player actions
-- computes rewards incrementally
-- computes the final total score
+### 3. Advanced Learning Techniques
+Per ottimizzare le prestazioni e puntare a punteggi elevati, sono state implementate tecniche avanzate:
+* Double DQN: Per ridurre la sovrastima sistematica dei valori Q.
+* Self-Imitation Learning (SIL): Un Elite Buffer memorizza le migliori partite di sempre per permettere all agente di ripassare le strategie vincenti.
+* Advanced Reward Shaping: La funzione di reward e stata modellata per fornire feedback densi:
+    * Delta Score: Incremento immediato di punteggio.
+    * Potential Gain: Premia le mosse che preparano combinazioni future (es. tris o poker).
+    * Flexibility: Incentiva il mantenimento di opzioni aperte in linee promettenti.
+    * Dead Cells: Penalizza il posizionamento di numeri che rendono impossibili le scale.
 
----
+## Struttura del Repository
+* api.py: Logica core del gioco, gestione del posizionamento e calcolo dei punteggi.
+* knister_ai.py: Implementazione della D3QN, della rete neurale e del loop di addestramento.
+* play.py: Script CLI per testare manualmente il gioco e verificare le regole.
+* README.md: Documentazione del progetto.
 
-## Main Methods
+## Utilizzo
 
-### Game lifecycle
+### Requisiti
+* Python 3.10+
+* PyTorch
+* NumPy
 
-```
-game = KnisterGame()
-game.new_game()
-```
-
-Resets the game state and rolls the first dice total.
-
-### Dice handling
-
-```
-game.roll_dice()  # Random roll
-game.set_current_roll(value)  # Manual setting, debug use only
-game.get_current_roll()
-```
-
-Dice rolls can be generated internally or set externally for deterministic evaluation.
-
-### Actions
-
-```
-game.get_available_actions()
-game.choose_action(action)
-```
-
-Actions correspond to grid cell indices from 0 to 24.
-
-### State and rewards
-
-```
-game.get_grid()
-game.get_last_reward()
-game.get_total_reward()
-game.has_finished()
+### Addestramento
+Per avviare l addestramento dell agente:
+```bash
+python knister_ai.py
 ```
 
-Rewards are defined as the **incremental score change** caused by the last action.
-
-Internally, the API tracks the total score before and after each placement.  
-The value returned by `get_last_reward()` is computed as:
-
-```
-self.last_score = score_now - self.prev_score
-```
-
-For example, if placing a value upgrades a line from a one pair (`1` point) to a three of a kind (`3` points), the last reward returned is `2` (`3-1`).
-
-A single placement may affect multiple rows, columns, or diagonals at once. In that case, all score increases and decreases are aggregated, and the returned reward reflects the net change in total score.
-
----
-
-## Exceptions
-
-The API uses explicit exceptions to signal invalid states:
-
-- `InvalidAction`: the chosen action is not available
-- `GameFinished`: an action was attempted after the game ended
-- `NoDice`: an action was attempted without a current dice roll
-
-All exceptions inherit from `KnisterException`.
-
----
-
-## Manual Testing
-
-The `play.py` module provides a simple command line interface to play the game manually.  
-It is intended for debugging and verifying game logic, not as a polished user interface.
-
-Run it with:
-
-```
-python play.py
+### Test
+Per testare il checkpoint generato avviare:
+```bash
+python test_ai.py
 ```
